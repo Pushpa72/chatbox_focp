@@ -1,0 +1,325 @@
+#!/usr/bin/env python3
+
+import os
+import json
+import argparse
+import readline
+import tempfile
+from abc import ABC, abstractmethod
+
+color1 = "\033[93m"
+color2 = "\033[0m"
+color3 = "\033[94m"
+color4 = "\033[91m"
+
+def eprint(text):
+    os.write(2, (text+"\n").encode())
+
+# Abstract base class for API clients
+class ChatClient(ABC):
+    def __init__(self, model):
+        self.client = None
+        self.key = os.getenv(self.envname)
+        self.model = model or self.default_model
+
+    @abstractmethod
+    def chat(self, messages):
+        pass
+
+    @abstractmethod
+    def list_models(self):
+        pass
+
+# OpenAI client implementation
+class OpenAIClient(ChatClient):
+    envname = "OPENAI_API_KEY"
+    default_model = "gpt-4o-mini"
+
+    def __init__(self, model=None):
+        super().__init__(model)
+        import openai
+        if self.key:
+            self.client = openai.OpenAI(api_key=self.key)
+
+    def chat(self, messages):
+        response = self.client.chat.completions.create(
+            messages=messages,
+            model=self.model,
+            stream=True
+        )
+        for chunk in response:
+            yield chunk.choices[0].delta.content
+
+    def list_models(self):
+        cards = self.client.models.list().data
+        return [c.id for c in cards]
+
+# Mistral client implementation
+class MistralClient(ChatClient):
+    envname = "MISTRAL_API_KEY"
+    default_model = "open-mistral-nemo"
+
+    def __init__(self, model=None):
+        super().__init__(model)
+        import mistralai.client
+        if self.key:
+            self.client = mistralai.client.MistralClient(api_key=self.key)
+
+    def chat(self, messages):
+        prefix = False
+
+        if messages and messages[-1]["role"] == "assistant":
+            messages[-1]["prefix"] = True
+            prefix = True
+            length = len(messages[-1]["content"])
+            if length == 0:
+                prefix = False
+                del messages[-1]
+
+        response = self.client.chat_stream(
+            messages=messages,
+            model=self.model
+        )
+
+        for chunk in response:
+            if prefix and length > 0:
+                length -= len(chunk.choices[0].delta.content)
+                continue
+            yield chunk.choices[0].delta.content
+
+        if prefix:
+            del messages[-1]["prefix"]
+
+    def list_models(self):
+        cards = self.client.list_models().data
+        return [c.id for c in cards]
+
+# Anthropic client implementation
+class AnthropicClient(ChatClient):
+    envname = "ANTHROPIC_API_KEY"
+    default_model = "claude-3-haiku-20240307"
+
+    def __init__(self, model=None):
+        super().__init__(model)
+        import anthropic
+        if self.key:
+            self.client = anthropic.Anthropic(api_key=self.key)
+
+    def chat(self, messages):
+        if messages and messages[0]["role"] == "system":
+            sys, *msg = messages
+            with self.client.messages.stream(
+                max_tokens=4096,
+                system = sys["content"],
+                messages=msg,
+                model=self.model
+            ) as stream:
+                for text in stream.text_stream:
+                    yield text
+        else:
+            with self.client.messages.stream(
+                max_tokens=4096,
+                messages=messages,
+                model=self.model
+            ) as stream:
+                for text in stream.text_stream:
+                    yield text
+
+    def list_models(self):
+        return [
+            "claude-3-5-haiku-20241022",
+            "claude-3-5-sonnet-20241022",
+            "claude-3-5-sonnet-20240620",
+            "claude-3-haiku-20240307",
+            "claude-3-sonnet-20240229",
+            "claude-3-opus-20240229",
+            "claude-2.1",
+            "claude-2.0",
+            "claude-instant-1.2",
+        ]
+
+
+endpoints = [OpenAIClient, MistralClient, AnthropicClient]
+
+# Function to load messages from a JSON file
+def load_messages(file_path):
+    try:
+        with open(file_path, "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        eprint(color4+"Warning: creating '"+file_path+"'"+color2)
+        return []
+    except json.decoder.JSONDecodeError:
+        eprint(color4+"Error: cannot parse '"+file_path+"'"+color2)
+        os._exit(1)
+
+# Function to save messages to a JSON file
+def save_messages(messages, file_path):
+    error = False
+    try:
+        with open(file_path, "w") as file:
+            json.dump(messages, file, indent=2)
+    except Exception as e:
+        error = True
+        eprint(color4+f"Error saving messages: {e}"+color2)
+
+    if error:
+        # Create a temporary file as emergency storage
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as file:
+            eprint(color4+"Temporary file created: "+file.name+color2)
+            json.dump(messages, file, indent=2)
+
+# Run one completion call, stream the result to stdout and return it
+def stream_response(client, messages):
+    print(color1 + "Xem: ", end="", flush=True)
+
+    response = client.chat(messages)
+
+    full_response = ""
+
+    # Get the content from each streamed event
+    try:
+        for chunk in response:
+            if type(chunk) is str:
+                print(chunk, end="", flush=True)
+                full_response += chunk
+    except Exception as e:
+        eprint(color4+f"Error getting completion: {e}"+color2)
+    except KeyboardInterrupt:
+        eprint(color3+"\n### Response interrupted (Ctrl+C)"+color2)
+
+    print(color2)
+    print()
+
+    return full_response
+
+# Do (potentially) multiple-line input
+def multi_line_input(prompt):
+    multi_mode = False
+
+    try:
+        line = input(prompt)  # Read first line
+    except EOFError:
+        multi_mode = True
+
+    if not multi_mode:
+        return line
+
+    eprint(color3+"### Multi-line mode activated (send with Ctrl+D)"+color2)
+    lines = []
+    try:
+        while True:
+            line = input()
+            lines.append(line)
+    except EOFError:
+        return '\n'.join(lines)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--model", default=None)
+    parser.add_argument("-l", "--list-models", action="store_true")
+    parser.add_argument("-r", "--read-only", action="store_true")
+    parser.add_argument("-c", "--no-color", action="store_true")
+    parser.add_argument("-b", "--batch", action="store_true")
+    parser.add_argument('chatlog', nargs='?')
+
+    args = parser.parse_args()
+
+    if args.no_color:
+        global color1, color2, color3, color4
+        color1 = color2 = color3 = color4 = ""
+
+    model = args.model
+    read_only = args.read_only
+    chatlog = args.chatlog
+
+    # Delete unreachable endpoints
+    endpoints[:] = filter(lambda endpoint: endpoint().client, endpoints)
+
+    if not endpoints:
+        eprint(color4+"Error: no API key found"+color2)
+        os._exit(1)
+
+    if args.list_models:
+        for endpoint in endpoints:
+            list = endpoint().list_models()
+            for m in list:
+                print(m)
+        return
+
+    client = None
+
+    if model:
+        for endpoint in endpoints:
+            list = endpoint().list_models()
+            if model in list:
+                client = endpoint(model)
+    else:
+        for endpoint in endpoints:
+            list = endpoint().list_models()
+            if list:
+                client = endpoint()
+
+    if not client:
+        eprint(f"{color4}Error: Could not find model {model}.{color2}")
+        os._exit(1)
+
+    messages = []
+
+    # If chatlog file is provided, load and replay messages
+    if chatlog:
+        messages = load_messages(chatlog)
+
+        for message in messages:
+            role = message["role"]
+            content = message["content"]
+
+            if not args.batch:
+                if role == "user":
+                    print("You: " + content + "\n")
+                elif role == "assistant":
+                    print(color1 + "Xem: " + content + color2 + "\n")
+                elif role == "system":
+                    print(color3 + "System: " + content + color2 + "\n")
+    else:
+        eprint(color4+"Warning: no chatlog"+color2)
+
+    eprint(f"{color3}### Start chatting with {client.model}:{color2}")
+
+    try:
+        while True:
+            user_input = ""
+            if not args.batch:
+                user_input = multi_line_input("You: ")
+                print()
+
+            # Append the user's input to the messages list
+            if user_input:
+                if len(messages) > 0 and messages[-1]["role"] == "user":
+                    messages[-1]["content"] += "\n"+user_input
+                else:
+                    messages.append({"role": "user", "content": user_input})
+
+            # Get the assistant's response
+            response_content = stream_response(client, messages)
+
+            if args.batch:
+                os._exit(0)
+
+            # Append the assistant's response to the messages list
+            if messages[-1]["role"] == "assistant":
+                messages[-1]["content"] += response_content
+            else:
+                messages.append({"role": "assistant", "content": response_content})
+
+    except KeyboardInterrupt:
+        eprint(color3+"\n### Goodbye! (Ctrl+C)"+color2)
+    except EOFError:
+        eprint(color3+"\n### Goodbye! (Ctrl+D)"+color2)
+    finally:
+        # Save messages if an output file is provided
+        if chatlog and not read_only:
+            save_messages(messages, chatlog)
+
+if __name__ == "__main__":
+    main()
