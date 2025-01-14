@@ -1,6 +1,6 @@
 import json 
 import random 
-import time 
+
 def greet_user():
     user_name=input("enter your name: ")
     print(f"Konichiwa {user_name}.welcome to the noobworld")
@@ -63,11 +63,11 @@ def reply(agent,log_file,user_in,user_name):
         print(f"{agent}:{reply}")
         log_file.write(f"{agent}:{reply}\n")
     else:
-        ran_reply=[
+        ran_reply=([
             f"{agent}: Gang I have no idea what you just said",
             f"{agent}: that's lowkie interesting {user_name}.tell me abt it "
 
-        ]
+        ])
         agent_reply = random.choice(ran_reply)
         print(agent_reply)
         log_file.write(f"{agent}:{agent_reply}")
@@ -76,6 +76,7 @@ def chatbox():
     user_name = greet_user()
     agents=agent_load()
     agent=agent_select(agents)
+    print(f"\n{agent}:Yo gang I'm here to vibe with you,{user_name}.To end the chat type 'sayonara'\n.")
    
 
     with open("chat_log.txt", "a") as log_file:  # Open the chat log file
