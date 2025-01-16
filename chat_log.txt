@@ -1,4 +1,4 @@
-Chat session started at 2025-01-16 17:51:08.652647
+Chat session started at 2025-01-16 18:16:39.500096
 
 pushpa: how is the food
 
@@ -12,7 +12,7 @@ pushpa: any specials?
 
 Kane:Special discount on all food items for students with a valid ID card
 
-pushpa: how is the payment 
+pushpa: whats the payment menthod
 
 Kane:Pay with your student Id or cash.or,if you're lucky, with your colgate smile
 Kane:sayonara,pushpa

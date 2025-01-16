@@ -4,7 +4,9 @@ import datetime
 
 def greet_user():
     user_name=input("enter your name: ")
-    print(f"Konichiwa {user_name}.welcome to the noobworld")
+    while not user_name:
+        print("Yo Gang..please enter your name")
+    print(f"Konichiwa {user_name}.welcome to the botworld")
     return user_name
 
 def agent_load():
@@ -13,7 +15,7 @@ def agent_load():
         return data["agents"]
                 
 def agent_display(agents):
-    print("choose your companian to guide through this journey:")
+    print("choose your companian to guide through this journey\nwe have 3 agents to choose form each with their unique sector library,canteen,admission respectively.")
     for idx, agent in enumerate(agents, 1):
         print(f"{idx}. {agent}")
     print("4. Random agent")
@@ -21,7 +23,7 @@ def agent_display(agents):
 def agent_select(agents):
     agent_display(agents)
     while True:
-        choice=input("enter your choice(1,2,3,4):")
+        choice=input("enter your choice:")
         if choice == '1':
             print("Ventress selected")
             return "Ventress"
@@ -41,12 +43,9 @@ def agent_select(agents):
             
         
 def save_chat(user_name,agent,user_in):
-    with open('json.json') as file:
-        data=json.load(file)
-        replies =data["reply"][agent]
 
     with open("chat_log.txt","a") as log_file:
-        log_file.write(f"__history with {agent}\n")
+        log_file.write(f"\n__chat history with {agent}\n")
         print(f"\n{agent}:Yo gang I'm here to vibe with you,{user_name}.To end the chat type 'sayonara'\n.")
         log_file.write(f"{user_name}:{user_in}\n")
 
