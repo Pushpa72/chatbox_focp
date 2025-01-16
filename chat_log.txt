@@ -1,10 +1,10 @@
-Chat session started at 2025-01-16 18:16:39.500096
+Chat session started at 2025-01-16 23:00:05.083548
 
 pushpa: how is the food
 
 Kane:its good too!Trust me,it's not just for survival,It's for Thriving!
 
-pushpa: whats on the menu 
+pushpa: whats on menu 
 
 Kane:Today's menu?Daal bhaat,Samosa,Katti roll
 
@@ -12,7 +12,7 @@ pushpa: any specials?
 
 Kane:Special discount on all food items for students with a valid ID card
 
-pushpa: whats the payment menthod
+pushpa: whats the payment method
 
 Kane:Pay with your student Id or cash.or,if you're lucky, with your colgate smile
 Kane:sayonara,pushpa

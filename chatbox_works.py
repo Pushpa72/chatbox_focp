@@ -52,13 +52,9 @@ def save_chat(user_name,agent,user_in):
 def end_chat(user_name,agent,log_file,session_summary):
         print(f"{agent}:Sayonara,{user_name}<3 let's catch up next time.")
         log_file.write(f"{agent}:sayonara,{user_name}\n")
-        print("\nSession Summary:")
-        print("-" * 20)
-        print(f"User: {user_name}")
-        print(f"Agent: {agent}")
-        print(f"Total Interactions: {len(session_summary)}")
+        session_sum(agent,user_name,session_summary)
 
-def random_disconnect(agent,user_name,log_file):
+def random_disconnect(agent,user_name,log_file,session_summary,):
     d_msg=[
         f"{agent}:oopsie!lost connection,{user_name}.see you later",
         f"{agent}:Gotta run!!,bye byeeee {user_name}",
@@ -66,6 +62,8 @@ def random_disconnect(agent,user_name,log_file):
     msg=random.choice(d_msg)
     print(msg)
     log_file.write(f"{agent}:{msg}\n")
+    session_sum(agent,user_name,session_summary)
+    
     
 
 def reply(agent,log_file,user_in,user_name,session_summary):
@@ -85,6 +83,7 @@ def reply(agent,log_file,user_in,user_name,session_summary):
     if search_key:
         print(f"{agent}:{search_key}")
         log_file.write(f"\n{agent}:{search_key}\n")
+        agent_reply = search_key
     else:
         ran_reply=([
             f"{agent}: Gang I have no idea what you just said",
@@ -94,7 +93,22 @@ def reply(agent,log_file,user_in,user_name,session_summary):
         agent_reply = random.choice(ran_reply)
         print(agent_reply)
         log_file.write(f"{agent}:{agent_reply}")
-        session_summary.append({"user": user_in, "agent": agent_reply})
+        session_summary.append({"user": user_in, "agent": agent_reply,"timestamp": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+def session_sum(agent,user_name,session_summary):
+            print("-" * 20)
+            print("\nSession Summary:")
+            print("-" * 20)
+            if session_summary:
+
+                print(f"User: {user_name}")
+                print(f"Agent: {agent}")
+                print(f"Total Interactions: {len(session_summary)}")
+                print(f"Chat End: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            else:
+                 print("No interactions recorded during this session.")  # Handle empty session gracefully
+                 print("-" * 20)
+
+    
 def chatbox():
     user_name = greet_user()
     agents=agent_load()
@@ -110,8 +124,8 @@ def chatbox():
                 end_chat(user_name, agent, log_file,session_summary)  
                 break  
             else:
-                reply(agent,log_file,user_in,user_name,session_summary)
-                session_summary.append({"user": user_in, "agent": reply})
+                    agent_Reply = reply(agent,log_file,user_in,user_name,session_summary)
+                    session_summary.append({"user": user_in, "agent": agent_Reply})
 if __name__ == "__main__":
     chatbox()
    
