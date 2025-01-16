@@ -2,6 +2,36 @@
     "agents":[
         "Ventress",
         "Kane",
-        "Lena"
-    ]
+        "Lena"],
+    "reply":{
+        "Ventress":{
+            "library":"its open from 4 to 5",
+            "break" : "the break is from 12 to 12:30",
+            "incubation" : "you can use incubation centre for any period of time.",
+            "return" :"you can borrow a book for 3 days using your college idetity card.In case of delay you wil be warned for 3 times and after that you will not be able to borrow any books.",
+            "book" : "Please look into logged books in the desk.",
+            "available" :"they are not yet logged into the system.please come back after an hour",
+            "assistance": "Feel free to ask for help at the information desk."
+
+        },
+        "Kane":{
+            "food":"its good too!Trust me,it's not just for survival,It's for Thriving!",
+            "menu":"Today's menu?Daal bhaat,Samosa,Katti roll",
+            "hours":"The cafeteria is open from 8am to 6pm.Plenty of time to grab a snack and spill some tea",
+            "specials" :"Special discount on all food items for students with a valid ID card",
+            "payment":"Pay with your student Id or cash.or,if you're lucky, with your colgate smile",
+           "seating":"Find a seat by the window for the best views and freshest gossip"
+        },
+        "Lena":{
+            "admission":"around 3 am",
+            "fees":"The admission fee is send to your email,for aditional imformation please contact the admission office.",
+            "contact":"You can contact the admissions office at admission@college.edu.",
+            "requirements" : "You need to submit your high school transcript and ID for admission. ",
+            "programs":"We have undergraduate and postgraduate programs in various discipiline.",
+            "scholarship" : "We have various scholarship programs available for students based on merit and need.",
+            "interview":"Some programs may require an interview as part of the admission process.",
+            "orientation":"the orientation for new students is scheduled for January 16th.Your clothe should be formal and exactly arrive at 10 am infront of the orientation hall.",
+            "accommodation" : "We have on-campus and off-campus accommodation options available for students."
+                }
+    }
 }

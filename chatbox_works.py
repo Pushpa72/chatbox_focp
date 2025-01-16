@@ -51,17 +51,30 @@ def save_chat(user_name,agent,user_in):
 def end_chat(user_name,agent,log_file):
         print(f"{agent}:Sayonara,{user_name}<3 let's catch up next time.")
         log_file.write(f"{agent}:sayonara,{user_name}\n")
+
+def random_disconnect(agent,user_name,log_file):
+    d_msg=[
+        f"{agent}:oopsie!lost connection,{user_name}.see you later",
+        f"{agent}:Gotta run!!,bye byeeee {user_name}",
+    ]
+    msg=random.choice(d_msg)
+    print(msg)
+    log_file.write(f"{agent}:{msg}\n")
     
 
 def reply(agent,log_file,user_in,user_name):
+    log_file.write(f"\n{user_name}: {user_in}\n")
+
     with open('json.json') as file:
         data = json.load(file)
         replies = data["reply"].get(agent, {})
+    user_in_lower = user_in.lower()
+    replies_lower = {key.lower(): value for key, value in replies.items()}
 
-    if user_in in replies:
-        reply=replies[user_in]
-        print(f"{agent}:{reply}")
-        log_file.write(f"{agent}:{reply}\n")
+    if user_in_lower in replies_lower:
+        agent_reply =replies_lower[user_in_lower]
+        print(f"{agent}:{agent_reply}")
+        log_file.write(f"\n{agent}:{agent_reply}\n")
     else:
         ran_reply=([
             f"{agent}: Gang I have no idea what you just said",
@@ -79,12 +92,12 @@ def chatbox():
     print(f"\n{agent}:Yo gang I'm here to vibe with you,{user_name}.To end the chat type 'sayonara'\n.")
    
 
-    with open("chat_log.txt", "a") as log_file:  # Open the chat log file
-        while True:  # Start the conversation loop
-            user_in = input(f"{user_name}: ")  # Get user input
-            if user_in in ["sayonara", "bye", "exit", "quit"]:  # Check if user wants to end chat
-                end_chat(user_name, agent, log_file)  # End the chat
-                break  # Exit the loop and stop the conversation
+    with open("chat_log.txt", "a") as log_file:  
+        while True:  
+            user_in = input(f"{user_name}: ").lower() 
+            if user_in in ["sayonara", "bye", "exit", "quit"]:  
+                end_chat(user_name, agent, log_file)  
+                break  
             else:
                 reply(agent,log_file,user_in,user_name)
 
