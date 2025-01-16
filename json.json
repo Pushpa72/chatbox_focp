@@ -1,8 +1,8 @@
 {
     "agents":[
-        "Ventress",
-        "Kane",
-        "Lena"],
+        "Ventress-library help",
+        "Kane-canteen ",
+        "Lena-admission help"],
     "reply":{
         "Ventress":{
             "library":"its open from 4 to 5",

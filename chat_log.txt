@@ -1,1 +1,18 @@
-Lena:sayonara,p
+Chat session started at 2025-01-16 17:51:08.652647
+
+pushpa: how is the food
+
+Kane:its good too!Trust me,it's not just for survival,It's for Thriving!
+
+pushpa: whats on the menu 
+
+Kane:Today's menu?Daal bhaat,Samosa,Katti roll
+
+pushpa: any specials?
+
+Kane:Special discount on all food items for students with a valid ID card
+
+pushpa: how is the payment 
+
+Kane:Pay with your student Id or cash.or,if you're lucky, with your colgate smile
+Kane:sayonara,pushpa
